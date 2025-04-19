@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #define TAMANHO_TABULEIRO 10
+#define TAMANHO_HABILIDADE 5
 #define TAMANHO_NAVIO 3
 
 // Função para verificar se o posicionamento é válido (sem sobreposição e dentro dos limites)
@@ -19,6 +21,20 @@ int validar_posicionamento(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO], 
 void posicionar_navio(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO], int linha, int coluna, int delta_linha, int delta_coluna) {
     for (int i = 0; i < TAMANHO_NAVIO; i++) {
         tabuleiro[linha + i * delta_linha][coluna + i * delta_coluna] = 3;
+    }
+}
+
+// Função para aplicar a matriz de habilidade no tabuleiro
+void aplicar_habilidade(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO], int habilidade[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE], int origem_linha, int origem_coluna) {
+    int offset = TAMANHO_HABILIDADE / 2; // Offset para centralizar a matriz de habilidade
+    for (int i = 0; i < TAMANHO_HABILIDADE; i++) {
+        for (int j = 0; j < TAMANHO_HABILIDADE; j++) {
+            int linha = origem_linha + i - offset;
+            int coluna = origem_coluna + j - offset;
+            if (linha >= 0 && linha < TAMANHO_TABULEIRO && coluna >= 0 && coluna < TAMANHO_TABULEIRO && habilidade[i][j] == 1) {
+                tabuleiro[linha][coluna] = 5; // Marca a área afetada pela habilidade
+            }
+        }
     }
 }
 
@@ -48,8 +64,38 @@ int main() {
         }
     }
 
+    // Matrizes de habilidades
+    int cone[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE] = {0};
+    int cruz[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE] = {0};
+    int octaedro[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE] = {0};
+
+    // Preenche a matriz de habilidade em cone
+    for (int i = 0; i < TAMANHO_HABILIDADE; i++) {
+        for (int j = TAMANHO_HABILIDADE / 2 - i; j <= TAMANHO_HABILIDADE / 2 + i && j < TAMANHO_HABILIDADE; j++) {
+            if (j >= 0) cone[i][j] = 1;
+        }
+    }
+
+    // Preenche a matriz de habilidade em cruz
+    for (int i = 0; i < TAMANHO_HABILIDADE; i++) {
+        cruz[i][TAMANHO_HABILIDADE / 2] = 1; // Linha central
+        cruz[TAMANHO_HABILIDADE / 2][i] = 1; // Coluna central
+    }
+
+    // Preenche a matriz de habilidade em octaedro
+    for (int i = 0; i < TAMANHO_HABILIDADE; i++) {
+        for (int j = abs(TAMANHO_HABILIDADE / 2 - i); j < TAMANHO_HABILIDADE - abs(TAMANHO_HABILIDADE / 2 - i); j++) {
+            octaedro[i][j] = 1;
+        }
+    }
+
+    // Aplica as habilidades no tabuleiro
+    aplicar_habilidade(tabuleiro, cone, 2, 2);       // Habilidade em cone no centro (2, 2)
+    aplicar_habilidade(tabuleiro, cruz, 5, 5);      // Habilidade em cruz no centro (5, 5)
+    aplicar_habilidade(tabuleiro, octaedro, 7, 7);  // Habilidade em octaedro no centro (7, 7)
+
     // Exibe o tabuleiro no console
-    printf("Tabuleiro de Batalha Naval:\n");
+    printf("Tabuleiro de Batalha Naval com Habilidades:\n");
     for (int i = 0; i < TAMANHO_TABULEIRO; i++) {
         for (int j = 0; j < TAMANHO_TABULEIRO; j++) {
             printf("%d ", tabuleiro[i][j]);
